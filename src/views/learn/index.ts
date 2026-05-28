@@ -490,10 +490,9 @@ export function useLearn() {
   toggleReadExpand,  // 切换阅读模式中文展开/收起
   translateExpandSet,  // 中译英模式：已展开英文的行索引集合
   toggleTranslateExpand,  // 切换中译英模式英文展开/收起
-  blankRevealed,
-    toggleBlankReveal,  // 切换挖空显示/隐藏（响应式）
-    renderLeftBlank,  // 左侧挖空渲染
-    genBlank,  // 挖空HTML生成
+  toggleBlankReveal,  // 切换挖空显示/隐藏（响应式）
+  renderLeftBlank,  // 左侧挖空渲染
+  genBlank,  // 挖空HTML生成
     onBlankClick,  // 挖空区域点击事件委托
     toggleFavorite,
     toggleVideoVisible,
@@ -510,7 +509,6 @@ export function useLearn() {
     diffTheme,
     stripHtml,
     kwHighlight,
-    genBlank,
     handleKwClick,
     onOptThemeChange,
   }
