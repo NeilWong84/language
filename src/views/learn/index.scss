@@ -125,11 +125,7 @@
   }
 }
 
-/* 右侧功能图标按钮 —— 提亮（在 .header 级别下）*/
-.header-icon-btn {
-    :deep(.t-icon) { font-size: 20px; color: rgba(255,255,255,.75) !important; transition: color .2s; }
-    &:hover :deep(.t-icon) { color: #fff !important; }
-  }
+/* 右侧功能图标按钮 —— 删掉硬编码白色，复用上方 .header-icon-btn 定义（已支持明暗双主题） */
 
 /* ============================================================
    MAIN LAYOUT —— 左右各占 50%
@@ -157,9 +153,11 @@
   .video-player { width: 100%; height: 100%; object-fit: contain; }
   .play-overlay {
     position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-    cursor: pointer; color: var(--ico);
-    &:hover { color: var(--ico-hover); }
-    .play-overlay-icon { color: inherit; }
+    cursor: pointer;
+    background: var(--hover-bg);
+    .play-overlay-icon { font-size: 80px; opacity: .85; transition: all .2s; color: var(--ico-hover); }
+    &:hover { background: rgba(0,0,0,.15); }
+    &:hover .play-overlay-icon { opacity: 1; }
   }
   .video-info-overlay {
     position: absolute; top: 18px; left: 24px; display: flex; flex-direction: column; gap: 8px;
@@ -452,6 +450,29 @@
   width: 40%; min-width: 0;
   background: var(--bg-root); border-left: 1px solid var(--border-main);
   overflow: hidden; display: flex; flex-direction: column; position: relative;
+
+  /* 隐藏视频时的遮罩层 */
+  .rp-overlay {
+    position: absolute; inset: 0; z-index: 20;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 12px;
+    background: rgba(0,0,0,.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    cursor: pointer;
+    transition: background .2s;
+    &:hover { background: rgba(0,0,0,.65); }
+
+    .rp-overlay-text {
+      font-size: 18px; font-weight: 500;
+      color: rgba(255,255,255,.88);
+      letter-spacing: 1px;
+    }
+    .rp-overlay-hint {
+      font-size: 14px;
+      color: rgba(255,255,255,.5);
+    }
+  }
 }
 
 /* ---------- WORD DETAIL PANEL ---------- */
@@ -517,9 +538,21 @@
 .wc-section {
   display: flex; flex-direction: column; height: 100%;
   .wc-toolbar {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 20px; border-bottom: 1px solid var(--border-main);
+    display: flex; align-items: center;
+    padding: 8px 20px; border-bottom: 1px solid var(--border-main);
     .wc-total-time { font-size: 14px; color: var(--text-3); }
+
+    .wc-msg {
+      font-size: 12px;
+      :deep(.t-message) {
+        border-radius: 6px;
+        padding: 4px 10px;
+        min-height: auto;
+
+        .t-icon { font-size: 14px; }
+        .t-message__content { font-size: 12px; line-height: 1.5; }
+      }
+    }
   }
   .wc-list {
     flex: 1; overflow-y: auto; padding: 10px;
@@ -538,6 +571,21 @@
       }
     }
   }
+}
+
+/* 词卡 message 明暗主题适配 —— wc-msg 与 t-message 在同一元素上 */
+.learn-container.theme-light :deep(.wc-msg) {
+  background: #fff !important;
+  border-color: #e7e7e7 !important;
+  .t-message__icon, .t-icon { color: #0052d9 !important; }
+  .t-message__content { color: #333 !important; }
+}
+.learn-container.theme-dark :deep(.wc-msg) {
+  background: #2a2a2a !important;
+  border-color: #444 !important;
+  color: #e0e0e0 !important;
+  .t-message__icon, .t-icon { color: #7eb3ff !important; }
+  .t-message__content { color: inherit !important; }
 }
 
 /* ---------- SUBTITLE LIST —— 大字体 ---------- */
@@ -606,8 +654,49 @@
       }
     }
 
-    /* 阅读模式下隐藏底部工具栏 */
-    &:has(.sl-read-row) .sl-footer {
+    /* 中译英模式：行号 + 中文 + 展开箭头(展开显示英文) */
+    .sl-translate-row {
+      display: flex; align-items: flex-start; gap: 10px;
+
+      .sl-translate-num {
+        font-size: 14px; color: var(--text-4); min-width: 20px;
+        padding-top: 3px; flex-shrink: 0; text-align: center;
+      }
+      .sl-translate-content {
+        flex: 1; min-width: 0;
+      }
+      .sl-translate-cn {
+        font-size: 16px; line-height: 1.6; word-break: break-word;
+        color: var(--text-1);
+      }
+      .sl-translate-en {
+        margin-top: 6px;
+        font-size: 14px; line-height: 1.65; word-break: break-word;
+        :deep(.kw) {
+          cursor: pointer; padding: 2px 5px; border-radius: 4px; transition: background .2s;
+          &.kw-orange { background: var(--kw-orange-bg); &:hover{background:var(--kw-orange-hover)} }
+          &.kw-green  { background: var(--kw-green-bg); }
+          &.kw-yellow { background: var(--kw-yellow-bg); }
+          &.kw-purple { background: var(--kw-purple-bg); }
+          &.kw-blue   { background: var(--kw-blue-bg); }
+        }
+      }
+      .sl-translate-arrow {
+        flex-shrink: 0;
+        padding-top: 4px;
+        cursor: pointer;
+        transition: transform .25s, color .2s;
+
+        :deep(.t-icon) { font-size: 16px; color: var(--text-4); }
+
+        &:hover { :deep(.t-icon) { color: var(--text-2); } }
+        &.expanded { transform: rotate(180deg); }
+      }
+    }
+
+    /* 阅读模式/中译英模式下隐藏底部工具栏 */
+    &:has(.sl-read-row) .sl-footer,
+    &:has(.sl-translate-row) .sl-footer {
       display: none;
     }
 
@@ -635,7 +724,7 @@
       padding: 6px 0;
 
       .preview-en {
-        font-size: 16px; line-height: 1.65; color: var(--text-1); margin-bottom: 6px; word-break: break-word;
+        font-size: 18px; line-height: 1.65; color: var(--text-1); margin-bottom: 8px; word-break: break-word;
         :deep(.kw) {
           cursor: pointer; padding: 2px 5px; border-radius: 4px; transition: background .2s;
           &.kw-orange { background: var(--kw-orange-bg); &:hover{background:var(--kw-orange-hover)} }
@@ -647,7 +736,7 @@
       }
 
       .preview-cn {
-        font-size: 14px; line-height: 1.55; color: var(--text-2);
+        font-size: 15px; line-height: 1.55; color: var(--text-2);
       }
     }
 

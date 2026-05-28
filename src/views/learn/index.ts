@@ -21,6 +21,7 @@ const translateText = ref('')
 const showOriginal = ref(false)  // 是否显示原文
 const subtitlePreviewSet = ref(new Set<number>())  // 隐藏按钮：已展开预览的行索引集合
 const readExpandSet = ref(new Set<number>())  // 阅读模式：已展开中文的行索引集合
+const translateExpandSet = ref(new Set<number>())  // 中译英模式：已展开英文的行索引集合
 
 // 挖空模式：已显示的空白记录（用对象实现响应式，key="${idx}-${word}"）
 const blankRevealed = ref<Record<string, boolean>>({})
@@ -49,12 +50,24 @@ const optFollowHighlight = ref(false)
 
 // 词卡
 const wordcardSortBy = ref('default')
-const totalStudyTime = ref('244.9')
+const totalStudyTime = computed(() => wordcardData.value.length)
 const activeWcIndex = ref(3) // 默认选中第4个
 const selectedWordDetail = ref(null)
 
 // 社交分享列表
 const socialShareList = ['wechat', 'qq', 'weibo', 'twitter', 'github', 'link']
+
+// 自定义 Tab 选项列表
+const modeTabs = [
+  { value: 'bilingual', label: '双语' },
+  { value: 'english', label: '英语' },
+  { value: 'chinese', label: '中文' },
+  { value: 'dictation', label: '听写' },
+  { value: 'blank', label: '词组' },
+  { value: 'read', label: '阅读' },
+  { value: 'translation', label: '中译英' },
+  { value: 'wordcard', label: '词卡' },
+]
 
 // 设置选项卡
 const settingTabs = [
@@ -327,9 +340,18 @@ const toggleReadExpand = (idx: number) => {  // 切换阅读模式某行中文�
   if (s.has(idx)) s.delete(idx)
   else s.add(idx)
 }
+const toggleTranslateExpand = (idx: number) => {  // 切换中译英模式某行英文展开/收起
+  const s = translateExpandSet.value
+  if (s.has(idx)) s.delete(idx)
+  else s.add(idx)
+}
 const showOriginalText = () => { dictationText.value = stripHtml(currentSubtitle.value?.english || '') }
 const toggleFavorite = () => { isFavorite.value = !isFavorite.value }
 const toggleVideoVisible = () => { videoVisible.value = !videoVisible.value }
+
+// 切换模式时自动恢复字幕可见
+watch(displayMode, () => { videoVisible.value = true })
+
 const togglePhonetic = () => { showPhonetic.value = !showPhonetic.value }
 const toggleFullscreen = () => {
   if (!videoPlayer.value) return
@@ -456,6 +478,7 @@ export function useLearn() {
     selectedWordDetail,
     socialShareList,
     settingTabs,
+    modeTabs,
     subtitles,
     wordcardData,
     // 计算属性
@@ -477,6 +500,8 @@ export function useLearn() {
     toggleShowOriginal,  // 切换原文显示/隐藏
   toggleSubtitlePreview,  // 切换字幕预览显隐（传入行索引）
   toggleReadExpand,  // 切换阅读模式中文展开/收起
+  translateExpandSet,  // 中译英模式：已展开英文的行索引集合
+  toggleTranslateExpand,  // 切换中译英模式英文展开/收起
   blankRevealed,
     toggleBlankReveal,  // 切换挖空显示/隐藏（响应式）
     renderLeftBlank,  // 左侧挖空渲染

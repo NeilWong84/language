@@ -10,20 +10,15 @@
       </div>
 
       <div class="mode-switcher">
-        <!-- 统一模式Tab：双语 / 英语 / 中文 / 听写 / 挖空 / 阅读 / 中译英 / 词卡 -->
-        <t-tabs v-model="displayMode" theme="card" size="medium" @change="(val) => { displayMode = val }">
+        <!-- 统一模式Tab -->
+        <t-tabs v-model="displayMode" theme="card" size="medium">
           <t-tab-panel value="bilingual" label="双语" />
           <t-tab-panel value="english" label="英语" />
           <t-tab-panel value="chinese" label="中文" />
           <t-tab-panel value="dictation" label="听写" />
           <t-tab-panel value="blank" label="词组" />
-        </t-tabs>
-
-        <t-divider layout="vertical" :style="{ borderColor: isDark ? '#333' : '#e0e0e0' }" />
-
-        <t-tabs v-model="displayMode" theme="card" size="medium" @change="(val) => { displayMode = val }">
           <t-tab-panel value="read" label="阅读" />
-          <t-tab-panel value="translate" label="中译英" />
+          <t-tab-panel value="translation" label="中译英" />
           <t-tab-panel value="wordcard" label="词卡" />
         </t-tabs>
 
@@ -31,7 +26,7 @@
 
         <!-- 功能按钮组：隐藏视频 / 设置 / 主题切换 -->
         <t-button variant="text" shape="square" size="small" class="header-icon-btn" @click="toggleVideoVisible">
-          <template #icon><t-icon name="browse-off" /></template>
+          <template #icon><t-icon :name="videoVisible ? 'browse-off' : 'browse'" /></template>
         </t-button>
         <t-button variant="text" shape="square" size="small" class="header-icon-btn" @click="showSettings = true">
           <template #icon><t-icon name="setting" /></template>
@@ -88,8 +83,8 @@
             <span class="ctrl-name">倍速</span>
           </div>
           <div class="ctrl-item" @click="toggleVideoVisible">
-            <t-icon name="browse-off" class="ctrl-ico" />
-            <span class="ctrl-name">隐藏视频</span>
+            <t-icon :name="videoVisible ? 'browse-off' : 'browse'" class="ctrl-ico" />
+            <span class="ctrl-name">{{ videoVisible ? '隐藏视频' : '显示视频' }}</span>
           </div>
           <div class="ctrl-item" @click="toggleFullscreen">
             <t-icon name="fullscreen-1" class="ctrl-ico" />
@@ -130,7 +125,7 @@
         </div>
 
         <!-- 底部字幕/听写/翻译显示区 -->
-        <div class="subtitle-display">
+        <div v-if="videoVisible" class="subtitle-display">
           <!-- 顶部工具栏：序号 / 收藏 / 编辑 / 切换模式 / 录音 -->
           <div class="sub-toolbar">
             <span class="sentence-counter">{{ currentSentenceIndex + 1 }} / {{ subtitles.length }}</span>
@@ -190,10 +185,10 @@
               </transition>
             </div>
 
-            <!-- 中译英模式：中文提示 + 英文输入 -->
-            <div v-else-if="displayMode === 'translate'" class="translate-box">
-              <p class="cn-hint">{{ currentSubtitle?.chinese }}</p>
-              <t-input v-model="translateText" placeholder="请输入英文翻译..." class="en-input" />
+            <!-- 中译英模式 -->
+            <div v-else-if="displayMode === 'translation'" class="read-subtitle">
+              <p class="en-text" v-html="renderedEnglish"></p>
+              <p class="cn-text">{{ currentSubtitle?.chinese }}</p>
             </div>
 
             <!-- 挖空模式 -->
@@ -225,6 +220,12 @@
 
       <!-- ====== 右侧面板区域 ====== -->
       <div class="right-panel">
+
+        <!-- 隐藏视频时的遮罩层 -->
+        <div v-if="!videoVisible" class="rp-overlay" @click="toggleVideoVisible">
+          <span class="rp-overlay-text">已隐藏字幕</span>
+          <span class="rp-overlay-hint">点击显示</span>
+        </div>
 
         <!-- ---------- 单词详情面板（点击关键词后滑出）---------- -->
         <transition name="slide-right">
@@ -291,13 +292,7 @@
         <!-- ---------- 词卡列表视图 ---------- -->
         <div v-if="displayMode === 'wordcard' && !selectedWordDetail" class="wc-section">
           <div class="wc-toolbar">
-            <t-radio-group v-model="wordcardSortBy" variant="default-filled" size="small">
-              <t-radio-button value="default">默认</t-radio-button>
-              <t-radio-button value="difficulty">判别</t-radio-button>
-              <t-radio-button value="time">时间</t-radio-button>
-              <t-radio-button value="custom">自定</t-radio-button>
-            </t-radio-group>
-            <span class="wc-total-time">{{ totalStudyTime }}</span>
+            <t-message theme="info" size="small" class="wc-msg" :content="`当前视频共计：${totalStudyTime} 条词/短语`" />
           </div>
           <div class="wc-list">
             <div
@@ -373,6 +368,22 @@
                 <!-- 默认：省略号占位 -->
                 <div v-else class="sl-dict-placeholder">...</div>
               </template>
+              <!-- 中译英：行号 + 中文 + 展开箭头(展开显示英文) -->
+              <template v-else-if="displayMode === 'translation'">
+                <div class="sl-translate-row">
+                  <span class="sl-translate-num">{{ idx + 1 }}</span>
+                  <div class="sl-translate-content">
+                    <div class="sl-translate-cn">{{ sub.chinese }}</div>
+                    <transition name="read-expand">
+                      <div v-if="translateExpandSet.has(idx)" class="sl-translate-en" v-html="kwHighlight(sub.english)"></div>
+                    </transition>
+                  </div>
+                  <span class="sl-translate-arrow" :class="{ expanded: translateExpandSet.has(idx) }" @click.stop="toggleTranslateExpand(idx)">
+                    <t-icon name="chevron-down" />
+                  </span>
+                </div>
+              </template>
+
               <!-- 挖空 -->
               <template v-else-if="displayMode === 'blank'">
                 <div class="sl-blank" v-html="genBlank(sub, idx)" @click="onBlankClick"></div>
@@ -545,6 +556,7 @@ const {
   showOriginal,  // 是否显示原文
   subtitlePreviewSet,  // 隐藏按钮：已展开预览的行索引集合
   readExpandSet,  // 阅读模式：已展开中文的行索引集合
+  translateExpandSet,  // 中译英模式：已展开英文的行索引集合
   blankRevealed,
   toggleBlankReveal,
   renderLeftBlank,
@@ -592,6 +604,7 @@ const {
   toggleShowOriginal,  // 切换原文显示/隐藏
   toggleSubtitlePreview,  // 切换字幕预览显示/隐藏
   toggleReadExpand,  // 切换阅读模式中文展开/收起
+  toggleTranslateExpand,  // 切换中译英模式英文展开/收起
   onBlankClick,  // 挖空块点击事件
   toggleFavorite,
   toggleVideoVisible,
