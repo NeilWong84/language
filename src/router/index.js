@@ -10,7 +10,7 @@ const routes = [
   {
     path: '/learn',
     name: 'Learn',
-    component: () => import('@/views/Learn.vue'),
+    component: () => import('@/views/learn/index.vue'),
     meta: { title: '视频学习' }
   },
   {
