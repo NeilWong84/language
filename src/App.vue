@@ -5,10 +5,18 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, provide, watch } from 'vue'
 import zhConfig from 'tdesign-vue-next/es/locale/zh_CN'
 
 const localeConfig = ref(zhConfig)
+const isDark = ref(true)
+
+// TDesign 暗黑模式：通过 :root.dark 类激活（tdesign-vue-next 内置支持）
+watch(isDark, (val) => {
+  document.documentElement.classList.toggle('dark', val)
+}, { immediate: true })
+
+provide('globalIsDark', isDark)
 </script>
 
 <style>
@@ -31,11 +39,5 @@ body {
 #app {
   width: 100%;
   min-height: 100vh;
-}
-
-/* TDesign深色主题覆盖 */
-.t-head-menu {
-  background: #1a1a1a !important;
-  border-bottom: 1px solid #2a2a2a !important;
 }
 </style>

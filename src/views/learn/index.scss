@@ -187,28 +187,10 @@
     &:hover { background: var(--hover-bg); }
     .ctrl-label { font-size: 16px; font-weight: 600; color: var(--text-1); line-height: 1.3; }
     .ctrl-name { font-size: 12px; color: var(--text-3); line-height: 1.3; }
-    /* 音标符号 - 支持明暗双主题 */
+    /* 音标符号 - 默认状态继承 ctrl-label 颜色 */
     .phonetic-symbol {
-      color: var(--text-3);
       font-weight: 600;
       transition: all 0.2s;
-      
-      &.active {
-        /* 暗黑模式：亮绿色 + 发光效果 */
-        .theme-dark & {
-          color: #69f0ae;
-          text-shadow: 0 0 8px rgba(105, 240, 174, 0.5);
-        }
-        
-        /* 明亮模式：深绿色 */
-        .theme-light & {
-          color: #2e7d32;
-          text-shadow: 0 0 4px rgba(46, 125, 50, 0.2);
-        }
-        
-        /* 默认回退（兼容性） */
-        color: #4caf50;
-      }
     }
 
     /* A点标记 - 支持明暗双主题 */
@@ -260,36 +242,6 @@
   .sub-toolbar {
     display: flex; align-items: center; gap: 10px;
     margin-bottom: 12px; font-size: 14px; color: var(--text-3);
-    .mode-switch-link {
-      margin-left: auto; cursor: pointer; color: var(--text-2);
-      &:hover { color: var(--text-1); }
-    }
-    .recording-label { display: flex; align-items: center; gap: 4px; color: var(--text-2); }
-    .mic-dot { color: #e34d59 !important; }
-    
-    /* 录音图标 - 支持明暗双主题 */
-    .mic-icon {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      
-      svg {
-        color: var(--ico);
-        transition: color 0.2s;
-        
-        /* 暗黑模式：红色高亮 */
-        .theme-dark & {
-          color: #e34d59;
-          filter: drop-shadow(0 0 4px rgba(227, 77, 89, 0.4));
-        }
-        
-        /* 明亮模式：深红色 */
-        .theme-light & {
-          color: #c41d3e;
-          filter: drop-shadow(0 0 2px rgba(196, 29, 62, 0.3));
-        }
-      }
-    }
   }
   .sub-content-area {
     min-height: 80px;
@@ -297,49 +249,6 @@
     padding: 12px 0;
   }
 
-  .dictation-box {
-    display: flex; flex-direction: column; gap: 10px;
-    align-items: center;  /* 整体内容居中 */
-    
-    .dictation-textarea {
-      width: 100%;
-      
-      :deep(.t-textarea__inner) {
-        background: var(--bg-elevated); 
-        border-color: var(--border-main);
-        color: var(--text-1);
-        &::placeholder { color: var(--text-4); }
-      }
-    }
-    .show-original-btn { 
-      /* 居中显示，使用默认 t-button 样式 */
-      margin-top: 8px;
-    }
-    
-    /* 原文显示区域 */
-    .original-text-box {
-      width: 100%;
-      margin-top: 12px;
-      padding: 16px;
-      background: var(--bg-card);
-      border: 1px solid var(--border-main);
-      border-radius: 8px;
-      
-      .original-label {
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--text-2);
-        margin-bottom: 10px;
-      }
-      
-      .original-content {
-        font-size: 17px;
-        line-height: 1.7;
-        color: var(--text-2);
-        font-weight: 400;
-      }
-    }
-  }
   .translate-box {
     .cn-hint { font-size: 16px; color: var(--text-2); margin-bottom: 10px; }
     .en-input :deep(.t-input__inner) {
@@ -588,6 +497,16 @@
   .t-message__content { color: inherit !important; }
 }
 
+/* 音标符号明暗主题适配 */
+.learn-container.theme-light :deep(.phonetic-symbol.active) {
+  color: #2e7d32;
+  text-shadow: 0 0 4px rgba(46, 125, 50, 0.2);
+}
+.learn-container.theme-dark :deep(.phonetic-symbol.active) {
+  color: #69f0ae;
+  text-shadow: 0 0 8px rgba(105, 240, 174, 0.5);
+}
+
 /* ---------- SUBTITLE LIST —— 大字体 ---------- */
 .sl-section { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
 .sl-list {
@@ -708,38 +627,6 @@
       .sl-expand { color: var(--text-4); font-size: 18px; flex-shrink: 0; margin-top: 3px; }
     }
 
-    /* 听写占位 - 优化显示效果 */
-    .sl-dict-placeholder {
-      color: var(--text-4);
-      font-size: 18px;
-      letter-spacing: 8px;
-      text-align: center;
-      padding: 8px 0;
-      font-weight: 300;
-      opacity: 0.7;
-    }
-
-    /* 听写模式 - 字幕预览（替换占位符） */
-    .sl-dict-preview {
-      padding: 6px 0;
-
-      .preview-en {
-        font-size: 18px; line-height: 1.65; color: var(--text-1); margin-bottom: 8px; word-break: break-word;
-        :deep(.kw) {
-          cursor: pointer; padding: 2px 5px; border-radius: 4px; transition: background .2s;
-          &.kw-orange { background: var(--kw-orange-bg); &:hover{background:var(--kw-orange-hover)} }
-          &.kw-green  { background: var(--kw-green-bg); }
-          &.kw-yellow { background: var(--kw-yellow-bg); }
-          &.kw-purple { background: var(--kw-purple-bg); }
-          &.kw-blue   { background: var(--kw-blue-bg); }
-        }
-      }
-
-      .preview-cn {
-        font-size: 15px; line-height: 1.55; color: var(--text-2);
-      }
-    }
-
     /* 挖空 —— 隐藏块 / 已显示 */
     .sl-blank {
       font-size: 18px; line-height: 1.65; display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
@@ -840,43 +727,6 @@
             }
           }
 
-          /* 录音按钮特殊样式 */
-          &.sl-mic-btn {
-            .mic-icon-btn {
-              display: inline-flex;
-              align-items: center;
-              justify-content: center;
-              
-              svg {
-                color: var(--ico);
-                transition: all 0.2s;
-                
-                /* 暗黑模式：红色高亮 + 发光效果 */
-                .theme-dark & {
-                  color: #e34d59;
-                  filter: drop-shadow(0 0 3px rgba(227, 77, 89, 0.5));
-                }
-                
-                /* 明亮模式：深红色 */
-                .theme-light & {
-                  color: #c41d3e;
-                }
-              }
-            }
-            
-            /* hover 效果 */
-            &:hover .mic-icon-btn svg {
-              transform: scale(1.15);
-              
-              .theme-dark & {
-                filter: drop-shadow(0 0 6px rgba(227, 77, 89, 0.7));
-              }
-              
-              .theme-light & {
-                color: #a01729;
-              }
-            }
-          }
         }
       }
     }
@@ -884,35 +734,36 @@
 }
 
 /* ============================================================
-   SETTINGS DRAWER — 暗色主题弹窗
+   SETTINGS DIALOG — 使用 TDesign 官方暗黑主题，无需手动覆盖
    ============================================================ */
-.settings-drawer {
-  :deep(.t-drawer__body) { background: #1e1e1e !important; color: #ddd !important; }
-  :deep(.t-drawer__header) { background: #1e1e1e !important; color: #ddd !important; border-bottom: 1px solid #333; }
-  :deep(.t-drawer__close-btn) { color: #999; &:hover { color: #ddd; } }
-  :deep(.t-drawer__title-text) { color: #ddd; font-weight: 600; }
-}
+
+/* settings-body 内容区 */
 .settings-body {
-  padding: 20px 24px;
+  padding: 16px 32px;
+
   .st-tabs {
     display: flex; align-items: center; gap: 14px;
-    padding-bottom: 16px; border-bottom: 1px solid #333; margin-bottom: 20px; position: relative;
+    padding-bottom: 14px; border-bottom: 1px solid var(--border-main); margin-bottom: 4px;
     .st-tab {
       display: flex; flex-direction: column; align-items: center; gap: 4px;
       cursor: pointer; padding: 8px 12px; border-radius: 6px;
-      color: #888; font-size: 11px; transition: all .2s;
-      &:hover, &.active { color: #5ba3ff; background: rgba(91,163,255,.1); }
-      .st-tab-ico { font-size: 20px; }
+      color: var(--text-3); font-size: 11px; transition: all .2s;
+      &:hover, &.active { color: #5ba3ff; background: var(--hover-bg); }
+      .st-tab-ico { font-size: 20px; color: var(--text-4); }
     }
   }
   .st-row {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 0; border-bottom: 1px solid #2a2a2a;
+    padding: 10px 0; border-bottom: 1px solid var(--border-subtle);
     .st-lbl {
-      display: flex; align-items: center; gap: 8px; font-size: 14px; color: #ccc;
-      .st-ico { color: #777; font-size: 17px; }
+      display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-2);
+      .st-ico { color: var(--text-4); font-size: 17px; }
     }
   }
+
+  /* 图标颜色穿透 */
+  .st-tab-ico :deep(.t-icon),
+  .st-ico :deep(.t-icon) { color: inherit !important; }
 }
 
 /* ============================================================

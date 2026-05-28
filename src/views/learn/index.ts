@@ -1,10 +1,4 @@
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-
-// ==================== 主题 ====================
-const isDark = ref(true)
-const toggleTheme = () => {
-  isDark.value = !isDark.value
-}
+import { ref, computed, onMounted, onUnmounted, watch, inject } from 'vue'
 
 // ==================== 基础状态 ====================
 const videoPlayer = ref(null)
@@ -14,11 +8,8 @@ const currentTime = ref(130)
 const duration = ref(283)
 const playbackRate = ref(1)
 const currentSentenceIndex = ref(0)
-const practiceMode = ref('read')
 const displayMode = ref('read')
-const dictationText = ref('')
 const translateText = ref('')
-const showOriginal = ref(false)  // 是否显示原文
 const subtitlePreviewSet = ref(new Set<number>())  // 隐藏按钮：已展开预览的行索引集合
 const readExpandSet = ref(new Set<number>())  // 阅读模式：已展开中文的行索引集合
 const translateExpandSet = ref(new Set<number>())  // 中译英模式：已展开英文的行索引集合
@@ -72,8 +63,8 @@ const modeTabs = [
 // 设置选项卡
 const settingTabs = [
   { key: 'fullscreen', label: '全屏', icon: 'fullscreen-1' },
-  { key: 'bookmark', label: '保藏', icon: 'bookmark-1' },
-  { key: 'ogf', label: '字幕OGF', icon: 'file-paste' },
+  { key: 'bookmark', label: '保藏', icon: 'star' },
+  { key: 'ogf', label: '字幕OGF', icon: 'file' },
   { key: 'live', label: '直播', icon: 'desktop' },
   { key: 'youtube', label: 'YouTube', icon: 'logo-youtube' },
 ]
@@ -328,8 +319,6 @@ const togglePlaybackRate = () => {
 const previousSentence = () => { if (currentSentenceIndex.value > 0) currentSentenceIndex.value-- }
 const nextSentence = () => { if (currentSentenceIndex.value < subtitles.value.length - 1) currentSentenceIndex.value++ }
 const jumpTo = (idx) => { currentSentenceIndex.value = idx }
-const togglePracticeMode = () => { displayMode.value = displayMode.value === 'dictation' ? 'read' : 'dictation' }
-const toggleShowOriginal = () => { showOriginal.value = !showOriginal.value }  // 切换原文显示/隐藏
 const toggleSubtitlePreview = (idx: number) => {  // 切换某行的字幕预览显隐
   const s = subtitlePreviewSet.value
   if (s.has(idx)) s.delete(idx)
@@ -345,7 +334,6 @@ const toggleTranslateExpand = (idx: number) => {  // 切换中译英模式某行
   if (s.has(idx)) s.delete(idx)
   else s.add(idx)
 }
-const showOriginalText = () => { dictationText.value = stripHtml(currentSubtitle.value?.english || '') }
 const toggleFavorite = () => { isFavorite.value = !isFavorite.value }
 const toggleVideoVisible = () => { videoVisible.value = !videoVisible.value }
 
@@ -437,6 +425,12 @@ onUnmounted(() => document.removeEventListener('click', handleKwClick))
 
 // 导出所有状态和方法供组件使用
 export function useLearn() {
+  // ==================== 主题（从 App.vue 注入，同步 TDesign 全局暗黑模式）====================
+  const isDark = inject('globalIsDark', ref(true))
+  const toggleTheme = () => {
+    isDark.value = !isDark.value
+  }
+
   return {
     // 响应式状态
     isDark,
@@ -447,12 +441,9 @@ export function useLearn() {
     duration,
     playbackRate,
     currentSentenceIndex,
-    practiceMode,
     displayMode,
-    dictationText,
     translateText,
-    showOriginal,  // 是否显示原文
-  subtitlePreviewSet,  // 隐藏按钮：已展开预览的行索引集合
+    subtitlePreviewSet,  // 隐藏按钮：已展开预览的行索引集合
   readExpandSet,  // 阅读模式：已展开中文的行索引集合
   blankRevealed,  // 挖空模式：已显示的空白记录（响应式对象）
     isFavorite,
@@ -495,9 +486,6 @@ export function useLearn() {
     previousSentence,
     nextSentence,
     jumpTo,
-    togglePracticeMode,
-    showOriginalText,
-    toggleShowOriginal,  // 切换原文显示/隐藏
   toggleSubtitlePreview,  // 切换字幕预览显隐（传入行索引）
   toggleReadExpand,  // 切换阅读模式中文展开/收起
   translateExpandSet,  // 中译英模式：已展开英文的行索引集合

@@ -15,7 +15,6 @@
           <t-tab-panel value="bilingual" label="双语" />
           <t-tab-panel value="english" label="英语" />
           <t-tab-panel value="chinese" label="中文" />
-          <t-tab-panel value="dictation" label="听写" />
           <t-tab-panel value="blank" label="词组" />
           <t-tab-panel value="read" label="阅读" />
           <t-tab-panel value="translation" label="中译英" />
@@ -126,7 +125,7 @@
 
         <!-- 底部字幕/听写/翻译显示区 -->
         <div v-if="videoVisible" class="subtitle-display">
-          <!-- 顶部工具栏：序号 / 收藏 / 编辑 / 切换模式 / 录音 -->
+          <!-- 顶部工具栏：序号 / 收藏 / 编辑 -->
           <div class="sub-toolbar">
             <span class="sentence-counter">{{ currentSentenceIndex + 1 }} / {{ subtitles.length }}</span>
 
@@ -139,54 +138,12 @@
             <t-button variant="text" shape="square" size="small" class="tool-btn">
               <template #icon><t-icon name="edit-1" /></template>
             </t-button>
-
-            <span class="mode-switch-link" @click="togglePracticeMode">
-              切换到{{ displayMode === 'dictation' ? '跟读' : '听写' }}
-            </span>
-
-            <span class="recording-label">
-              录音：<span class="mic-icon">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                  <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-                  <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-                </svg>
-              </span>
-            </span>
           </div>
 
           <!-- 内容区域 -->
           <div class="sub-content-area">
-            <!-- 听写模式（displayMode 或 practiceMode 为 dictation）：文本域 + 查看原文按钮 -->
-            <div v-if="displayMode === 'dictation'" class="dictation-box">
-              <t-textarea
-                v-model="dictationText"
-                placeholder="开始听写吧..."
-                :autosize="{ minRows: 2, maxRows: 4 }"
-                class="dictation-textarea"
-              />
-              
-              <!-- Toggle 按钮：查看原文 / 关闭 -->
-              <t-button 
-                theme="default" 
-                variant="base" 
-                size="medium" 
-                class="show-original-btn" 
-                @click="toggleShowOriginal"
-              >
-                {{ showOriginal ? '关闭' : '查看原文' }}
-              </t-button>
-              
-              <!-- 原文显示区域（toggle 显示）-->
-              <transition name="slide-down">
-                <div v-if="showOriginal" class="original-text-box">
-                  <div class="original-label">字幕原文：</div>
-                  <div class="original-content">{{ stripHtml(currentSubtitle?.english || '') }}</div>
-                </div>
-              </transition>
-            </div>
-
             <!-- 中译英模式 -->
-            <div v-else-if="displayMode === 'translation'" class="read-subtitle">
+            <div v-if="displayMode === 'translation'" class="read-subtitle">
               <p class="en-text" v-html="renderedEnglish"></p>
               <p class="cn-text">{{ currentSubtitle?.chinese }}</p>
             </div>
@@ -358,16 +315,6 @@
                   <t-icon name="chevron-down" class="sl-expand" />
                 </div>
               </template>
-              <!-- 听写占位 / 字幕预览 -->
-              <template v-else-if="displayMode === 'dictation'">
-                <!-- 预览展开：显示当前行字幕 -->
-                <div v-if="subtitlePreviewSet.has(idx)" class="sl-dict-preview">
-                  <div class="preview-en" v-html="kwHighlight(sub.english)"></div>
-                  <div class="preview-cn">{{ sub.chinese }}</div>
-                </div>
-                <!-- 默认：省略号占位 -->
-                <div v-else class="sl-dict-placeholder">...</div>
-              </template>
               <!-- 中译英：行号 + 中文 + 展开箭头(展开显示英文) -->
               <template v-else-if="displayMode === 'translation'">
                 <div class="sl-translate-row">
@@ -413,18 +360,6 @@
                       <template #icon><t-icon name="edit-1" /></template>
                     </t-button>
                   </t-tooltip>
-                  <t-tooltip v-if="displayMode !== 'dictation'" content="录音">
-                    <t-button variant="text" shape="square" size="small" class="sl-act-btn sl-mic-btn" @click.stop="recordAt(idx)">
-                      <template #icon>
-                        <span class="mic-icon-btn">
-                          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-                            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-                          </svg>
-                        </span>
-                      </template>
-                    </t-button>
-                  </t-tooltip>
                   <t-tooltip :content="subtitlePreviewSet.has(idx) ? '隐藏' : '查看'">
                     <t-button variant="text" shape="square" size="small" class="sl-act-btn" :class="{ 'preview-active': subtitlePreviewSet.has(idx) }" @click.stop="toggleSubtitlePreview(idx)">
                       <template #icon><t-icon :name="subtitlePreviewSet.has(idx) ? 'browse-off' : 'browse'" /></template>
@@ -440,16 +375,14 @@
       </div><!-- end right-panel -->
     </div><!-- end main-content -->
 
-    <!-- ==================== 设置弹窗（暗色主题）==================== -->
-    <t-drawer
+    <!-- ==================== 设置弹窗 ==================== -->
+    <t-dialog
       v-model:visible="showSettings"
       header="设置"
-      :size="560"
-      placement="right"
       :footer="false"
       :close-btn="true"
       :show-overlay="true"
-      class="settings-drawer"
+      width="760px"
     >
       <div class="settings-body">
         <!-- 选项卡图标行 -->
@@ -468,7 +401,7 @@
 
         <!-- 字幕大小滑块 -->
         <div class="st-row">
-          <div class="st-lbl"><t-icon name="format-vertical-align-top" class="st-ico" /> 字幕大小</div>
+          <div class="st-lbl"><t-icon name="font-background" class="st-ico" /> 字幕大小</div>
           <t-slider v-model="fontSize" :min="12" :max="28" :step="1" show-value style="width:220px;" />
         </div>
 
@@ -509,7 +442,7 @@
 
         <!-- 动态字幕 -->
         <div class="st-row">
-          <div class="st-lbl"><t-icon name="flash" class="st-ico" /> 动态字幕</div>
+          <div class="st-lbl"><t-icon name="lightbulb" class="st-ico" /> 动态字幕</div>
           <t-radio-group v-model="optDynamicSub" variant="default-filled" size="small">
             <t-radio-button value="karaoke">校歌</t-radio-button>
             <t-radio-button value="highlight">中文</t-radio-button>
@@ -534,7 +467,7 @@
           <t-switch v-model="optFollowHighlight" />
         </div>
       </div>
-    </t-drawer>
+    </t-dialog>
   </div>
 </template>
 
@@ -551,9 +484,7 @@ const {
   playbackRate,
   currentSentenceIndex,
   displayMode,
-  dictationText,
   translateText,
-  showOriginal,  // 是否显示原文
   subtitlePreviewSet,  // 隐藏按钮：已展开预览的行索引集合
   readExpandSet,  // 阅读模式：已展开中文的行索引集合
   translateExpandSet,  // 中译英模式：已展开英文的行索引集合
@@ -599,9 +530,6 @@ const {
   previousSentence,
   nextSentence,
   jumpTo,
-  togglePracticeMode,
-  showOriginalText,
-  toggleShowOriginal,  // 切换原文显示/隐藏
   toggleSubtitlePreview,  // 切换字幕预览显示/隐藏
   toggleReadExpand,  // 切换阅读模式中文展开/收起
   toggleTranslateExpand,  // 切换中译英模式英文展开/收起
@@ -615,7 +543,6 @@ const {
   copySub,
   toggleFav,
   playAt,
-  recordAt,
   closeWordDetail,
   openWordFromCard,
   diffTheme,
