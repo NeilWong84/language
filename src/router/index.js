@@ -28,6 +28,7 @@ const routes = [
   {
     path: '/practice/word',
     name: 'WordTyping',
+    alias: '/views/typing/word',
     component: () => import('@/views/typing/word/index.vue'),
     meta: { title: '单词打字练习' }
   },

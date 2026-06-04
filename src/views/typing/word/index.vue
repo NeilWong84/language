@@ -1,12 +1,11 @@
 <template>
-  <div class="word-typing" :class="{ 'theme-dark': isDark }">
-    <!-- ==================== 顶部导航栏 ==================== -->
-    <header class="top-nav">
+  <div class="word-typing" :class="{ 'theme-dark': isDark, 'zen-active': zenMode }">
+    <header v-if="!zenMode" class="top-nav">
       <div class="nav-left">
         <span class="brand">TypeMaster</span>
         <button class="nav-btn back-btn" @click="$router.back()">
           <t-icon name="chevron-left" />
-          返回课馆
+          返回课程
         </button>
       </div>
       <div class="nav-center">
@@ -14,11 +13,11 @@
         <span class="progress-text">{{ currentIndex + 1 }}/{{ wordList.length }}</span>
       </div>
       <div class="nav-right">
-        <button class="icon-btn" @click="showSettings = true">
+        <button class="icon-btn" title="设置" @click="showSettings = true">
           <t-icon name="setting" />
         </button>
-        <button class="icon-btn" @click="toggleSound">
-          <t-icon :name="soundOn ? 'sound' : 'sound-mute' " />
+        <button class="icon-btn" :title="soundOn ? '关闭声音' : '开启声音'" @click="toggleSound">
+          <t-icon :name="soundOn ? 'sound' : 'sound-mute'" />
         </button>
         <div class="user-avatar" @click="showUserMenu = !showUserMenu">
           <span>U</span>
@@ -27,12 +26,9 @@
       </div>
     </header>
 
-    <!-- ==================== 主内容区域 ==================== -->
-    <div class="main-layout">
-      <!-- 左侧主区域 -->
+    <div class="main-layout" :class="{ 'zen-layout': zenMode }">
       <div class="left-panel">
-        <!-- ========== 统计卡片行 ========== -->
-        <div class="stats-row">
+        <div v-if="!zenMode" class="stats-row">
           <div class="stat-card">
             <div class="stat-icon-wrap speed">
               <t-icon name="speedometer" />
@@ -71,23 +67,18 @@
           </div>
         </div>
 
-        <!-- ========== 单词展示区 ========== -->
         <div class="word-display-area">
           <div class="word-show">
             <template v-for="(char, idx) in currentWord.split('')" :key="idx">
-              <span
-                class="char"
-                :class="getCharClass(idx)"
-              >{{ char }}</span>
+              <span v-if="idx === userInput.length && !isCurrentComplete" class="typing-cursor">|</span>
+              <span class="char" :class="getCharClass(idx)">{{ char }}</span>
             </template>
-            <span v-if="isCurrentComplete || userInput.length < currentWord.length" class="typing-cursor">|</span>
           </div>
 
-          <!-- 音标与释义 -->
           <div class="word-meta">
             <div class="phonetic-row">
-              <span class="phonetic">/{{ currentWordData.phonetic }}/'</span>
-              <button class="play-sound-btn" @click="playPronunciation">
+              <span class="phonetic">/{{ currentWordData.phonetic }}/</span>
+              <button class="play-sound-btn" title="播放发音" @click="playPronunciation()">
                 <t-icon name="sound" />
               </button>
             </div>
@@ -97,7 +88,6 @@
             </div>
           </div>
 
-          <!-- 操作按钮组 -->
           <div class="action-buttons">
             <button class="action-btn" @click="playPronunciation('us')">
               <t-icon name="sound" />
@@ -109,49 +99,52 @@
             </button>
             <button class="action-btn hint-btn" @click="showHint = !showHint">
               <t-icon name="lightbulb" />
-              显示提示
+              {{ showHint ? '隐藏提示' : '显示提示' }}
             </button>
             <button class="action-btn" @click="addToMistakes">
               <t-icon name="bookmark" />
-              添加到错题本
+              加入错题
+            </button>
+            <button class="action-btn zen-btn" :class="{ active: zenMode }" @click="toggleZenMode()">
+              <t-icon name="lightbulb" />
+              {{ zenMode ? '退出禅模式' : '禅模式' }}
             </button>
           </div>
 
-          <!-- 提示信息 (可选) -->
           <transition name="fade">
             <div v-if="showHint" class="hint-box">
-              <p>提示: {{ getHintText() }}</p>
+              <p>提示：{{ getHintText() }}</p>
             </div>
           </transition>
         </div>
 
-        <!-- ========== 虚拟键盘区域 ========== -->
         <div v-if="showKeyboard" class="keyboard-section">
           <div class="keyboard-wrapper">
-            <!-- 数字行 -->
             <div class="kb-row">
               <kbd v-for="key in numRowKeys" :key="key" :class="getKeyClass(key)" @click="onKeyClick(key)">
                 {{ key === 'Backspace' ? '' : key }}
                 <t-icon v-if="key === 'Backspace'" name="delete" size="16px" />
               </kbd>
             </div>
-            <!-- 第一行 QWERTYUIOP[]\ -->
             <div class="kb-row">
-              <kbd v-for="key in row1Keys" :key="key" :class="getKeyClass(key)" @click="onKeyClick(key)">{{ key }}</kbd>
+              <kbd v-for="key in row1Keys" :key="key" :class="getKeyClass(key)" @click="onKeyClick(key)">
+                {{ key }}
+              </kbd>
             </div>
-            <!-- 第二行 ASDFGHJKL;' -->
             <div class="kb-row">
               <kbd class="kb-modifier">Shift</kbd>
-              <kbd v-for="key in row2Keys" :key="key" :class="getKeyClass(key)" @click="onKeyClick(key)">{{ key }}</kbd>
+              <kbd v-for="key in row2Keys" :key="key" :class="getKeyClass(key)" @click="onKeyClick(key)">
+                {{ key }}
+              </kbd>
               <kbd class="kb-modifier">Enter</kbd>
             </div>
-            <!-- 第三行 ZXCVBNM,./ -->
             <div class="kb-row">
               <kbd class="kb-modifier wide">Ctrl</kbd>
-              <kbd v-for="key in row3Keys" :key="key" :class="getKeyClass(key)" @click="onKeyClick(key)">{{ key }}</kbd>
+              <kbd v-for="key in row3Keys" :key="key" :class="getKeyClass(key)" @click="onKeyClick(key)">
+                {{ key }}
+              </kbd>
               <kbd class="kb-modifier wide">Shift</kbd>
             </div>
-            <!-- 空格行 -->
             <div class="kb-row space-row">
               <kbd class="kb-wide" :class="{ active: lastKeyPressed === ' ' }" @click="onKeyClick(' ')">空格</kbd>
             </div>
@@ -159,8 +152,7 @@
         </div>
       </div>
 
-      <!-- 右侧错题本面板 -->
-      <aside class="right-panel">
+      <aside v-if="!zenMode" class="right-panel">
         <div class="mistake-header">
           <t-icon name="file-paste" />
           <span>我的错题本</span>
@@ -188,8 +180,7 @@
       </aside>
     </div>
 
-    <!-- ==================== 底部控制栏 ==================== -->
-    <footer class="bottom-control-bar">
+    <footer v-if="!zenMode" class="bottom-control-bar">
       <div class="bottom-left">
         <span class="dict-label">
           <t-icon name="book" /> 当前词库:
@@ -197,8 +188,10 @@
         <select v-model="selectedDict" class="dict-select">
           <option value="cet4">四级词汇</option>
           <option value="cet6">六级词汇</option>
-          <option value="ielts">雅思词汇</option>
+          <option value="ielts">雅思核心词</option>
           <option value="toefl">托福词汇</option>
+          <option value="gre">GRE 词汇</option>
+          <option value="kaoyan">考研英语</option>
         </select>
       </div>
       <div class="bottom-center">
@@ -220,10 +213,9 @@
       </div>
     </footer>
 
-    <!-- ==================== 完成弹窗 ==================== -->
     <t-dialog
       v-model:visible="showCompleteDialog"
-      header="🎉 练习完成!"
+      header="练习完成"
       :footer="false"
       width="520px"
     >
@@ -253,7 +245,6 @@
       </div>
     </t-dialog>
 
-    <!-- ==================== 设置弹窗 ==================== -->
     <t-dialog
       v-model:visible="showSettings"
       header="设置"
@@ -301,12 +292,8 @@ const {
   currentIndex,
   userInput,
   lastKeyPressed,
-  elapsedTime,
   completedCount,
-  correctCount,
-  errorCount,
   streakCount,
-  allStats,
   mistakeList,
   wordList,
   numRowKeys,
@@ -331,6 +318,8 @@ const {
   goToWord,
   startMistakePractice,
   toggleSound,
+  toggleZenMode,
+  zenMode,
   retryAll
 } = useWordTyping()
 </script>
