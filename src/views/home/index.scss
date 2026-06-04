@@ -283,7 +283,7 @@ $dk-hero-bg: linear-gradient(135deg, #0d0d18 0%, #14142a 40%, #0f1025 100%);
 
     &:hover {
       transform: translateY(-3px) scale(1.05);
-      strong { color: darken($primary, 5%); text-shadow: 0 2px 8px rgba(79,110,247,.2); }
+      strong { color: #3b54d7; text-shadow: 0 2px 8px rgba(79,110,247,.2); }
       span { color: var(--text-2); }
     }
   }

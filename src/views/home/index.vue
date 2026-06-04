@@ -458,6 +458,8 @@ const features = [
   { icon: '⚡', title: '无级变速', desc: '0.5x~2.0x 连续调速，支持各种语速听写训练', gradient: 'linear-gradient(135deg,#a1c4fd 0%,#c2e9fb 100%)' },
   { icon: '📚', title: '同步课程', desc: '覆盖小学、初中、高中及新概念等权威教材体系', gradient: 'linear-gradient(135deg,#89f7fe 0%,#66a6ff 100%)' },
   { icon: '🎯', title: '高频词组', desc: '中高考高频单词与短语，针对性突破考试重点', gradient: 'linear-gradient(135deg,#fddb92 0%,#d1fdff 100%)' },
+  { icon: '💼', title: '成人学习', desc: '旅游、商务、职场、兴趣等多场景定制化学习内容', gradient: 'linear-gradient(135deg,#a8edea 0%,#fed6e3 100%)' },
+  { icon: '🌏', title: '小语种', desc: '支持英文，后续将开放日文、德文、西班牙语等更多语种', gradient: 'linear-gradient(135deg,#d299c2 0%,#fef9d7 100%)' },
 ]
 
 // 学习方法
