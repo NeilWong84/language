@@ -16,8 +16,26 @@ const routes = [
   {
     path: '/practice',
     name: 'Practice',
-    component: () => import('@/views/Practice.vue'),
+    component: () => import('@/views/practice/index.vue'),
     meta: { title: '练习中心' }
+  },
+  {
+    path: '/practice/courses',
+    name: 'Courses',
+    component: () => import('@/views/typing/courses/index.vue'),
+    meta: { title: '课程选择' }
+  },
+  {
+    path: '/practice/word',
+    name: 'WordTyping',
+    component: () => import('@/views/typing/word/index.vue'),
+    meta: { title: '单词打字练习' }
+  },
+  {
+    path: '/practice/sentence',
+    name: 'SentenceTyping',
+    component: () => import('@/views/typing/sentence/index.vue'),
+    meta: { title: '句子打字练习' }
   },
   {
     path: '/profile',

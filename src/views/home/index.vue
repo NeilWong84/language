@@ -11,6 +11,7 @@
           <a href="#features" @click.prevent="scrollTo('features')">功能介绍</a>
           <a href="#methods" @click.prevent="scrollTo('methods')">学习方法</a>
           <a href="#courses" @click.prevent="scrollTo('courses')">精品课件</a>
+          <router-link to="/practice/courses">打字练习</router-link>
           <button class="nav-btn" @click="showLogin = true">登录</button>
           <button class="nav-btn nav-btn-primary" @click="showReg = true">免费注册</button>
         </nav>
